@@ -1,1 +1,1 @@
-../../../ExternalAddons/ofxPolylineSpline
+../../../ExternalAddons/ofxPolyline
