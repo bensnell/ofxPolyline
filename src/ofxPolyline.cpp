@@ -26,14 +26,7 @@ void ofxPolyline::cycleMode() {
 // ----------------------------------------------------------------------------
 void ofxPolyline::flagHasChanged() {
 
-	switch (mode) {
-	case OFXPOLYLINE_LINEAR:
-		ofPolyline::flagHasChanged();
-		break;
-	case OFXPOLYLINE_SPLINE:
-		buildSpline(); // this will also flag the polyline as changed
-		break;
-	}
+	build();
 }
 
 // ----------------------------------------------------------------------------
@@ -154,9 +147,9 @@ glm::vec3 ofxPolyline::getClosestPoint(const glm::vec3& target,
 	}; break;
 	case OFXPOLYLINE_SPLINE: {
 
-		unsigned int _nearestIndex;
-		glm::vec3 closestPoint = ofPolyline::getClosestPoint(target, &_nearestIndex);
-		*nearestIndex = size_t(round(float(_nearestIndex) / float(size()))) % size();
+		float findex;
+		glm::vec3 closestPoint = getClosestPoint(target, &findex);
+		*nearestIndex = size_t(round(findex)) % size();
 		return closestPoint;
 
 	}; break;
@@ -187,7 +180,7 @@ glm::vec3 ofxPolyline::getClosestPoint(const glm::vec3& target, float* findex) {
 		// ffindex = fmod(findex,1)*splineResolution, and 
 		// (3) The percent this point is between the neighboring sub-points, via fmod(ffindex,1).
 
-		* findex = nearestIndex / float(splineResolution);
+		*findex = fmod((nearestIndex + (isClosed() ? 1 : 0)) / float(splineResolution), (float)size());
 
 		return closestPoint;
 
@@ -280,7 +273,18 @@ float ofxPolyline::getLengthAtIndexInterpolated(float findex) {
 	switch (mode) {
 	case OFXPOLYLINE_LINEAR: {
 
-		return ofPolyline::getLengthAtIndexInterpolated(findex);
+		// First, wrap the index
+		findex = fmod(findex + ceil(abs(findex / float(size()))) * float(size()), float(size()));
+
+		// Closed lines don't calculate length correctly between the last and first point, so 
+		// adjust for this.
+		float indexAtBoundary = float(size() - 1);
+		float length = ofPolyline::getLengthAtIndexInterpolated(findex);
+		if (isClosed() && findex > indexAtBoundary) {
+			float lengthAtBoundary = ofPolyline::getLengthAtIndexInterpolated(indexAtBoundary);
+			length = ofMap(length, lengthAtBoundary, 0, lengthAtBoundary, getPerimeter(), true);
+		}
+		return length;
 
 	}; break;
 	case OFXPOLYLINE_SPLINE: {
@@ -294,8 +298,8 @@ float ofxPolyline::getLengthAtIndexInterpolated(float findex) {
 		float length = ofPolyline::getLengthAtIndexInterpolated(
 			findex * float(splineResolution));
 		if (isClosed() && findex > indexAtBoundary) {
-			// TODO: ofPolyline::getLengthAtII ?
-			float lengthAtBoundary = ofPolyline::getLengthAtIndexInterpolated(indexAtBoundary);
+			float lengthAtBoundary = ofPolyline::getLengthAtIndexInterpolated(
+				indexAtBoundary * float(splineResolution));
 			length = ofMap(length, lengthAtBoundary, 0, lengthAtBoundary, getPerimeter(), true);
 		}
 		return length;

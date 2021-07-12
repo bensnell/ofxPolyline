@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
+#include "ofxPolyline.hpp"
 
 class ofApp : public ofBaseApp{
 
@@ -20,5 +21,9 @@ class ofApp : public ofBaseApp{
 		void windowResized(int w, int h);
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
+
+		ofxPolyline line;
 		
+		stringstream ptInfo;
+		glm::vec3 closestPt;
 };

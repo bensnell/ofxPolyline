@@ -36,6 +36,7 @@ public:
 	size_t size();
 	void close();
 	void setClosed(bool tf);
+	void cycleClosed() { return setClosed(!isClosed()); }
 	void clear();
 	void flagHasChanged();
 
