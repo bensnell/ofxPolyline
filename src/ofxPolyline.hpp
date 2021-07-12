@@ -24,6 +24,7 @@ public:
 	// Set the mode of this polyline.
 	void setMode(OFXPOLYLINE_MODE _mode);
 	void cycleMode();
+	static vector<string> getOfxPolylineModeList() { return { "Linear", "Spline" }; };
 
 	// Add a vertex to the polyline. Instead of using line/curve-to functions,
 	// a universal addVertex function is adopted. Resolution is only used for
